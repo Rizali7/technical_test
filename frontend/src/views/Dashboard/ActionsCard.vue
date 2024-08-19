@@ -1,10 +1,51 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { api } from '@/api';
 import { useModal } from '@/composables/useModal';
 import { useToast } from '@/composables/useToast';
+import type { ApiSchema } from '@/types';
 import { ref } from 'vue';
-const modal = useModal<boolean>()
-const toast = useToast()
+
+// Define properties with default value
+const props = defineProps<{
+  applications?: ApiSchema['BrokerApplicationDto'][]; // Optional with default value
+  newLoanAmount: number; // Add new loan amount as a prop
+}>();
+
+// Default to an empty array if applications is undefined
+const applications = computed(() => props.applications || []);
+
+// Compute total and average loan amount
+const totalLoanAmount = computed(() => {
+  return applications.value.reduce((total, application) => {
+    // Convert application.loanAmount from string to integer
+    const loanAmount = parseInt(application.loanAmount, 10) || 0;
+    return total + loanAmount;
+  }, 0);
+});
+
+const averageLoanAmount = computed(() => {
+  return applications.value.length > 0 ? totalLoanAmount.value / applications.value.length : 0;
+});
+
+// Convert to integers
+const totalLoanAmountInt = computed(() => Math.floor(totalLoanAmount.value));
+const averageLoanAmountInt = computed(() => Math.floor(averageLoanAmount.value));
+
+// Compare new loan amount to average
+const newLoanComparison = computed(() => {
+  return props.newLoanAmount > averageLoanAmount.value
+    ? 'Above Average'
+    : 'Below Average';
+});
+
+// Log values
+console.log('2Total Loan Amount (Int):', totalLoanAmountInt.value);
+console.log('Average Loan Amount (Int):', averageLoanAmountInt.value);
+console.log('New Loan Amount Comparison:', newLoanComparison.value);
+
+const modal = useModal<boolean>();
+const toast = useToast();
 
 const formData = ref({
   applicantName: '',
@@ -25,9 +66,6 @@ const formData = ref({
   savingsContribution: 0,
 });
 
-
-
-
 const submitApplication = async () => {
   try {
     const dataToSend = { ...formData.value };
@@ -35,13 +73,12 @@ const submitApplication = async () => {
     const response = await api.applications.post(dataToSend);
     console.log('API response:', response);
     console.log('Applicant Name:', formData.value.applicantName);
-    console.log('Applicant Name:', formData.value.applicantEmail); 
-    console.log('Applicant Name:', formData.value.applicantMobilePhoneNumber); 
-    console.log('Applicant Name:', formData.value.applicantAddress); 
-    console.log('Applicant Name:', formData.value.incomingAddress);   
-  //  const response = await api.applications.post(formData.value);
+    console.log('Applicant Email:', formData.value.applicantEmail); 
+    console.log('Applicant Mobile Phone Number:', formData.value.applicantMobilePhoneNumber); 
+    console.log('Applicant Address:', formData.value.applicantAddress); 
+    console.log('Incoming Address:', formData.value.incomingAddress);   
     console.log('Form data being sent:', JSON.stringify(formData.value));
-  //  const response = await api.applications.post(formData.value);
+
     if (response.success) {
       toast.success('Application Saved Successfully.');
     } else {
@@ -55,8 +92,29 @@ const submitApplication = async () => {
   modal.confirm(false);
 };
 
-</script>
+// Method to handle loan amount change and compare with average
+const handleLoanAmountChange = (event: Event) => {
+  console.log('Change event triggered');
+  const input = document.getElementById("loan_amount").querySelector("input");
+  // const input = event.target as HTMLInputElement;
 
+  console.log(input);
+  // const loanAmount = parseInt(input.value);
+  let loanAmount = input.value;
+  loanAmount = loanAmount.replace(/,/g, "");
+  // Make sure you are getting the right averageLoanAmountInt
+  const averageLoanAmountInt = parseFloat(document.getElementById("average_loan_amount")?.value || "0");
+  console.log("Average Loan Amount (Int):", averageLoanAmountInt);
+
+  if (loanAmount > averageLoanAmountInt) {
+    toast.success('Loan amount is above average.');
+  } else {
+    toast.success('Loan amount is below average.');
+  }
+};
+
+
+</script>
  
 
 <template>
@@ -103,7 +161,9 @@ const submitApplication = async () => {
         <label for="incoming_stamp_duty">Incoming Stamp Duty</label>
         <BNumberInput v-model="formData.incomingStampDuty" id="incoming_stamp_duty" required />
         <label for="loan_amount">Loan Amount</label>
-        <BNumberInput v-model="formData.loanAmount" id="loan_amount" required />
+        <BNumberInput v-model="formData.loanAmount" id="loan_amount" required @input="handleLoanAmountChange" />
+
+
         <label for="loan_duration">Loan Duration</label>
         <BNumberInput v-model="formData.loanDuration" id="loan_duration" required />
         <label for="monthly_expenses">Monthly Expenses</label>
@@ -124,8 +184,25 @@ const submitApplication = async () => {
         <BButton label="Cancel" @click="modal.confirm(false)"></BButton>
       </template>
     </BModal>
+
+
+    
+
+
+
   </div>
 </template>
+
+
+<style lang="scss" scoped>
+.application-item {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  margin-bottom: 1rem;
+}
+</style>
+
+
 
 <style lang="scss" scoped>
 .action-section {

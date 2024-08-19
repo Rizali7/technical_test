@@ -151,6 +151,26 @@ export class BrokerApplicationsListController {
   //   };
   // }
 
+  @Get('average-loan-amount')
+  @UseGuards(BrokerGuard)
+  @ApiBearerAuth('BROKER')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get the average loan amount of all applications',
+    description: 'Fetches the average loan amount from all applications.',
+  })
+  @ApiOkResponse({
+    description: 'Average loan amount fetched successfully.',
+    schema: {
+      example: {
+        averageLoanAmount: 25000,
+      },
+    },
+  })
+  // async getAverageLoanAmount(): Promise<{ averageLoanAmount: number }> {
+  //   const averageLoanAmount = await this.applicationService.getAverageLoanAmount();
+  //   return { averageLoanAmount };
+  // }
 
   @Post('create-applications')
   @UseGuards(BrokerGuard)
@@ -184,6 +204,10 @@ export class BrokerApplicationsListController {
       loanAmount,
       application, // Ensure this matches BrokerApplicationPostResponseDto
     };
+
+
+
+    
   }
   
 

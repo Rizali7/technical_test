@@ -85,6 +85,21 @@ export class ApplicationService {
   ) {}
 
 
+
+
+  async getAllApplications(): Promise<Application[]> {
+    try {
+      // Fetch all applications from the database
+      const applications = await this.applicationRepository.findAll<Application>();
+      return applications;
+    } catch (error) {
+      // Log the error
+      console.error('Error fetching applications:', error);
+      // Throw a user-friendly error
+      throw new HttpException('Failed to fetch applications', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   
   async createApplication(dto: ApplicationDto): Promise<Application> {
     try {

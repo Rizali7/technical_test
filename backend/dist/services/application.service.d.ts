@@ -3,5 +3,6 @@ import { ApplicationDto } from 'src/api/brokers/applications/list-applications/l
 export declare class ApplicationService {
     private applicationRepository;
     constructor(applicationRepository: typeof Application);
+    getAllApplications(): Promise<Application[]>;
     createApplication(dto: ApplicationDto): Promise<Application>;
 }

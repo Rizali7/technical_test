@@ -39,6 +39,10 @@ const props = defineProps<{
       <div class="sm">Loan stage</div>
       {{ LOAN_STATUS_DESC[props.application.status] ?? props.application.status }}
     </td>
+    <td class="application__status">
+      <div class="sm">Loan Amount</div>
+      {{ props.application.loanAmount }}
+    </td>
   </tr>
 </template>
 
